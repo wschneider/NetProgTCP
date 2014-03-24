@@ -17,13 +17,15 @@ import java.net.*;
 import java.util.*;
 
 public class Handler implements Runnable{
+    Server server;
+    
     
     /*
     TODO: IMPLEMENT CONSTRUCTOR
     */
-    public Handler()
+    public Handler(Server top)
     {
-        
+        this.server = top;
     }
     
     /*

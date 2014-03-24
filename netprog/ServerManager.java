@@ -50,16 +50,26 @@ public class ServerManager
         
     }
     
+    /*
+    CONSTRUCTOR:
+        initializes a pool of threads to each be running a server listening on
+        a specified port. It does not start the threads until start() is called.
+        This is to delay running in case any more processing need be done.
+    */
     public ServerManager(int ports[])
     {
         
         POOL = new Thread[ports.length];
         for(int i=0;i<ports.length;i++)
         {
-            POOL[i] = new Thread(new Server(ports[i]));
+            POOL[i] = new Thread(new Server(ports[i], this));
         }   
     }
     
+    /*
+    void start():
+        Starts all the threads running the servers
+    */
     public void start()
     {
         for(Thread thread : POOL)

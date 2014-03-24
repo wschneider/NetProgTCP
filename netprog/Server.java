@@ -17,14 +17,17 @@ import java.net.*;
 import java.util.*;
 
 public class Server implements Runnable{
+    ServerManager manager;
     ServerSocket serverSocket;
     Socket clientSocket;
     /*
     CONSTRUCTOR:
         Initializes the server-side socket connection. Literally nothing else.
     */
-    public Server(int port)
+    public Server(int port, ServerManager top)
     {
+        this.manager = top;
+        
         try
         {
             this.serverSocket = new ServerSocket( port );
@@ -37,7 +40,7 @@ public class Server implements Runnable{
     
     /*
     void run:
-        This server is called upon from the top-level ServerManader in its own 
+        This server is called upon from the top-level ServerManager in its own 
         thread (so it implements Runnable). The run function therefor does the 
         bulk of the server work, itself popping off a new thread for each 
         connection
@@ -56,7 +59,7 @@ public class Server implements Runnable{
                 System.err.println(e);
             }
            
-           new Thread(new Handler(/*ARGS*/)).start();
+           new Thread(new Handler(this)).start();
         }
         
         
