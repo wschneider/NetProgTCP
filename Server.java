@@ -55,9 +55,11 @@ public class Server implements Runnable{
             {
                 System.err.println(e);
             }
+           
+           new Thread(new Handler(/*ARGS*/)).start();
         }
         
-        new Thread(new Handler(/*ARGS*/)).start();
+        
         
     }
     
