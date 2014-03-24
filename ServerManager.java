@@ -1,24 +1,26 @@
 /*
-    Server.java
+    ServerManager.java
     Authors: 
         Will Schneider
         Will Kelly
 
     Purpose:
-        Chat Server receives and handles TCP/UDP connections from clients. 
+        ServerManager sits as the overhead manager of several Servers (one for 
+        each specified port in the command line arguments). 
         
     Methods:
         To Be Described Later
 */
+package netprog;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Server
+public class ServerManager
 {
     //Singleton representation of the server because reasons
-    Server INSTANCE;
+    ServerManager INSTANCE;
     ServerSocket[] Sockets;
     
     /*
@@ -47,13 +49,15 @@ public class Server
     }
     
     /*
+    ALERT: DEPRECATED CONSTRUCTOR, REDO THIS
+    TODO: REDO DEPRECATED CONSTRUCTOR
         Server:
-            (1) If an instance of the server already exists, quit.
+            (1) If an instance of the server manager already exists, quit.
             (2) Create one ServerSocket for each port specified, place in 
                 global array
             (3) Set global instance to refer to first initialiaze server.
     */
-    public Server(int ports[])
+    public ServerManager(int ports[])
     {
         if(INSTANCE != null)
         {
@@ -81,6 +85,7 @@ public class Server
     
     
     /*
+    ALERT: DEPRECATED FUNCTION, REDO THIS
     TODO:
         void run:
             (1) For each ServerSocket, create a new thread to handle one port's 

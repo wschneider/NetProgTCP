@@ -10,3 +10,58 @@
     Methods:
         To Be Described Later
 */
+package netprog;
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class Server implements Runnable{
+    ServerSocket serverSocket;
+    Socket clientSocket;
+    /*
+    CONSTRUCTOR:
+        Initializes the server-side socket connection. Literally nothing else.
+    */
+    public Server(int port)
+    {
+        try
+        {
+            this.serverSocket = new ServerSocket( port );
+        }
+        catch(IOException e)
+        {
+            System.err.println(e);
+        }
+    }
+    
+    /*
+    void run:
+        This server is called upon from the top-level ServerManader in its own 
+        thread (so it implements Runnable). The run function therefor does the 
+        bulk of the server work, itself popping off a new thread for each 
+        connection
+    */
+    public void run()
+    {
+        while(true)
+        {
+           try
+            {
+                this.clientSocket = serverSocket.accept();
+                
+            }
+            catch(IOException e)
+            {
+                System.err.println(e);
+            }
+        }
+        
+        new Thread(new Handler(/*ARGS*/)).start();
+        
+    }
+    
+    
+    
+    
+}
