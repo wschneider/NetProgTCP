@@ -10,7 +10,15 @@
         
     Methods:
         To Be Described Later
+
+    Protocol:
+        <SEND msg id>: Send msg to the client represented by id
+        <BROADCAST msg>: Send msg to EACH client 
+        <ME IS id>: Declare identity
 */
+
+
+
 package netprog;
 
 import java.io.*;
@@ -22,6 +30,8 @@ public class ServerManager
     //Singleton representation of the server because reasons
     ServerManager INSTANCE;
     Thread[] POOL;
+    boolean VERBOSEOUTPUT;
+    ArrayList<Connection> clients;
     
     /*
         void main:
@@ -58,7 +68,8 @@ public class ServerManager
     */
     public ServerManager(int ports[])
     {
-        
+        clients = new ArrayList();
+        VERBOSEOUTPUT = true;
         POOL = new Thread[ports.length];
         for(int i=0;i<ports.length;i++)
         {
@@ -77,5 +88,7 @@ public class ServerManager
             thread.start();
         }
     }
+    
+    
     
 }
