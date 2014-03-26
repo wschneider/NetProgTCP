@@ -85,6 +85,7 @@ public class ServerManager
     {
         for(Thread thread : POOL)
         {
+            System.out.println("Starting a Server thread");
             thread.start();
         }
     }

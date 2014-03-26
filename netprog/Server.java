@@ -17,9 +17,10 @@ import java.net.*;
 import java.util.*;
 
 public class Server implements Runnable{
+    int port;
     ServerManager manager;
     ServerSocket serverSocket;
-    Socket clientSocket;
+    //Socket clientSocket;
     /*
     CONSTRUCTOR:
         Initializes the server-side socket connection. Literally nothing else.
@@ -27,7 +28,7 @@ public class Server implements Runnable{
     public Server(int port, ServerManager top)
     {
         this.manager = top;
-        
+        this.port = port;
         try
         {
             this.serverSocket = new ServerSocket( port );
@@ -47,19 +48,21 @@ public class Server implements Runnable{
     */
     public void run()
     {
+        System.out.println("Server Running on port " + this.port);
+        
         while(true)
         {
+           Socket clientSocket;
            try
             {
-                this.clientSocket = serverSocket.accept();
-                
+                clientSocket = serverSocket.accept();
+                new Thread(new Handler(this, clientSocket)).start();
             }
             catch(IOException e)
             {
                 System.err.println(e);
             }
            
-           new Thread(new Handler(this)).start();
         }
         
         

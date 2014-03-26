@@ -19,14 +19,15 @@ import java.util.*;
 public class Handler implements Runnable
 {
     Server server;
-    
+    Socket clientSocket;
     
     /*
     TODO: IMPLEMENT CONSTRUCTOR
     */
-    public Handler(Server top)
+    public Handler(Server top, Socket clientSocket)
     {
         this.server = top;
+        this.clientSocket = clientSocket;
     }
     
     /*
@@ -34,7 +35,7 @@ public class Handler implements Runnable
     */
     public void run()
     {
-        
+        System.out.println("RECEIVED CONNECTION");
     }
     
     
