@@ -18,16 +18,18 @@ import java.util.*;
 
 public class Handler implements Runnable
 {
+    String PROTOCOL;
     Server server;
     Socket clientSocket;
     
     /*
     TODO: IMPLEMENT CONSTRUCTOR
     */
-    public Handler(Server top, Socket clientSocket)
+    public Handler(Server top, Socket clientSocket, String protocol)
     {
         this.server = top;
         this.clientSocket = clientSocket;
+        this.PROTOCOL = protocol;
     }
     
     /*
@@ -36,6 +38,36 @@ public class Handler implements Runnable
     public void run()
     {
         System.out.println("RECEIVED CONNECTION");
+        try{
+            if(PROTOCOL.toUpperCase() == "TCP")
+            {
+                this.handleTCP();
+            }
+            else if(PROTOCOL.toUpperCase() == "UDP")
+            {
+                this.handleUDP();
+            }
+        }
+        catch(IOException e)
+        {
+            System.err.println(e);
+        }
+    }
+    
+    public void handleTCP() throws IOException
+    {
+        // Should theoretically loop indefinitely. 
+        BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        while(clientSocket.isConnected())
+        {
+            System.out.println("Received input:" + input.readLine());
+        }
+        ;
+    }
+    
+    public void handleUDP()
+    {
+        ;
     }
     
     

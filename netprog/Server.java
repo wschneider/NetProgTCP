@@ -19,7 +19,8 @@ import java.util.*;
 public class Server implements Runnable{
     int port;
     ServerManager manager;
-    ServerSocket serverSocket;
+    ServerSocket TCPSocket;
+    DatagramSocket UDPSocket;
     //Socket clientSocket;
     /*
     CONSTRUCTOR:
@@ -31,7 +32,9 @@ public class Server implements Runnable{
         this.port = port;
         try
         {
-            this.serverSocket = new ServerSocket( port );
+            this.TCPSocket = new ServerSocket(port);
+           
+            this.UDPSocket = new DatagramSocket(port);
         }
         catch(IOException e)
         {
@@ -55,8 +58,8 @@ public class Server implements Runnable{
            Socket clientSocket;
            try
             {
-                clientSocket = serverSocket.accept();
-                new Thread(new Handler(this, clientSocket)).start();
+                clientSocket = TCPSocket.accept();
+                new Thread(new Handler(this, clientSocket, "TCP")).start();
             }
             catch(IOException e)
             {

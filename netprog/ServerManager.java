@@ -68,7 +68,7 @@ public class ServerManager
     */
     public ServerManager(int ports[])
     {
-        clients = new ArrayList();
+        clients = new ArrayList<Connection>();
         VERBOSEOUTPUT = true;
         POOL = new Thread[ports.length];
         for(int i=0;i<ports.length;i++)
