@@ -96,7 +96,11 @@ public class Server implements Runnable{
                         System.out.println("Acceptable TCP, passing thread");
                         new Thread(new Handler(this, tcp.accept().socket(), "TCP")).start();
                     }
-                    
+                    else if(key.isReadable() && c == udp)
+                    {
+                        //System.out.println("Acceptable UDP, passing thread");
+                        new Thread(new Handler(this, udp.socket(), "UDP"));
+                    }
                 }
             }
             catch (Exception e)

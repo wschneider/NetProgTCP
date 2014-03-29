@@ -21,6 +21,7 @@ public class Handler implements Runnable
     String PROTOCOL;
     Server server;
     Socket clientSocket;
+    DatagramSocket UDPClientSocket;
     
     /*
     TODO: IMPLEMENT CONSTRUCTOR
@@ -29,6 +30,15 @@ public class Handler implements Runnable
     {
         this.server = top;
         this.clientSocket = clientSocket;
+        this.UDPClientSocket = null;
+        this.PROTOCOL = protocol;
+    }
+    
+    public Handler(Server top, DatagramSocket UDPSocket, String protocol)
+    {
+        this.server = top;
+        this.clientSocket = null;
+        this.UDPClientSocket = UDPSocket;
         this.PROTOCOL = protocol;
     }
     
@@ -39,19 +49,19 @@ public class Handler implements Runnable
     {
         System.out.println("RECEIVED CONNECTION WITH " + this.PROTOCOL);
         try{
-            if(PROTOCOL.toUpperCase() == "TCP")
+            if(PROTOCOL.toUpperCase().equals("TCP"))
             {
                 //System.out.println("TCP");
                 this.handleTCP();
             }
-            else if(PROTOCOL.toUpperCase() == "UDP")
+            else if(PROTOCOL.toUpperCase().equals("UDP"))
             {
-                //System.out.println("UDP");    
+                System.out.println("UDP");    
                 this.handleUDP();
             }
             else
             {
-                //System.out.println("ERROR?");
+                System.out.println("ERROR?");
             }
         }
         catch(IOException e)
@@ -214,9 +224,33 @@ public class Handler implements Runnable
     /*
     TODO: Implement UDP handler function. 
     */
-    public void handleUDP()
+    public void handleUDP() throws IOException
     {
-        ;
+        byte[] dataIn = new byte[1024];
+        byte[] dataOut = new byte[1024];
+        
+        //while(UDPClientSocket.isConnected())
+        //{
+            DatagramPacket requestPacket = new DatagramPacket(dataIn, dataIn.length);
+            System.out.println("Blocking on receive");
+            UDPClientSocket.receive(requestPacket);
+            
+            System.out.println("Received a packet");
+            
+            String fullRequest = new String( requestPacket.getData() );
+            /*
+            UDP handles messages with content fields up to 100 bytes. 
+            They are formatted in lines though, so lets just use that. 
+            */
+            
+            String[] lines = fullRequest.split("\n");
+            
+            System.out.println("RECEIVED FROM USER: \n" + fullRequest);
+            String reply = "ACK";
+            
+            DatagramPacket replyPacket = new DatagramPacket(reply.getBytes(), reply.getBytes().length, requestPacket.getAddress(), requestPacket.getPort());
+            UDPClientSocket.send(replyPacket);
+        //}   
     }
     
     
