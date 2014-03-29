@@ -78,22 +78,8 @@ public class Server implements Runnable{
     {
         System.out.println("Server Running on port " + this.port);
         
-        //Utils.LoadMap("mapa");
-        
-        
         while(true)
-        {/*
-           Socket clientSocket;
-           try
-            {
-                clientSocket = TCPSocket.accept();
-                new Thread(new Handler(this, clientSocket, "TCP")).start();
-            }
-            catch(IOException e)
-            {
-                System.err.println(e);
-            }
-           */
+        {
             try
             {
                 selector.select();

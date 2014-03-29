@@ -26,9 +26,9 @@ public class Connection{
     int numMessages;
     Handler handler;
     
-    public Connection(String uid, InetAddress ip, Handler h)
+    public Connection(String uid, Handler h)
     {
-        this.InetAddr = ip;
+        this.InetAddr = h.clientSocket.getInetAddress();
         this.userid = uid;
         this.handler = h;
         this.numMessages = 0;

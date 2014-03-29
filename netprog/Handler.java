@@ -109,7 +109,7 @@ public class Handler implements Runnable
                         Since this is a one line request, just push the one line up to the manager. 
                 */
                 requestLine = c;
-                String reply = this.server.manager.ME_IS(requestLine, clientSocket.getInetAddress(), this);
+                String reply = this.server.manager.ME_IS(requestLine, this);
                 clientSocket.getOutputStream().write(reply.getBytes());
             }
             else if(c.startsWith("WHO HERE "))
