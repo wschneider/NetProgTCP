@@ -15,12 +15,22 @@ package netprog;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.*;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.Channel;
 
 public class Server implements Runnable{
     int port;
     ServerManager manager;
     ServerSocket TCPSocket;
     DatagramSocket UDPSocket;
+    
+    ServerSocketChannel tcp;
+    DatagramChannel udp;
+    Selector selector;
     //Socket clientSocket;
     /*
     CONSTRUCTOR:
@@ -32,9 +42,24 @@ public class Server implements Runnable{
         this.port = port;
         try
         {
-            this.TCPSocket = new ServerSocket(port);
-           
-            this.UDPSocket = new DatagramSocket(port);
+            SocketAddress localport = new InetSocketAddress(port);
+            
+            //CREATE THE PORTS
+            //this.TCPSocket = new ServerSocket(port);
+            //this.UDPSocket = new DatagramSocket(port);
+            this.tcp = ServerSocketChannel.open();
+            this.udp = DatagramChannel.open();
+            
+            tcp.socket().bind(localport);
+            udp.socket().bind(localport);
+            
+            tcp.configureBlocking(false);
+            udp.configureBlocking(false);
+            
+            this.selector = Selector.open();
+            
+            tcp.register(selector, SelectionKey.OP_ACCEPT);
+            udp.register(selector, SelectionKey.OP_READ);  
         }
         catch(IOException e)
         {
@@ -53,8 +78,11 @@ public class Server implements Runnable{
     {
         System.out.println("Server Running on port " + this.port);
         
+        //Utils.LoadMap("mapa");
+        
+        
         while(true)
-        {
+        {/*
            Socket clientSocket;
            try
             {
@@ -65,7 +93,30 @@ public class Server implements Runnable{
             {
                 System.err.println(e);
             }
-           
+           */
+            try
+            {
+                selector.select();
+                Set<SelectionKey> keys = selector.selectedKeys();
+                for(Iterator<SelectionKey> i = keys.iterator(); i.hasNext();)
+                {
+                    SelectionKey key = i.next();
+                    i.remove();
+                    
+                    Channel c = key.channel();
+                    
+                    if(key.isAcceptable() && c == tcp)
+                    {
+                        System.out.println("Acceptable TCP, passing thread");
+                        new Thread(new Handler(this, tcp.accept().socket(), "TCP")).start();
+                    }
+                    
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
         
         

@@ -37,15 +37,21 @@ public class Handler implements Runnable
     */
     public void run()
     {
-        System.out.println("RECEIVED CONNECTION");
+        System.out.println("RECEIVED CONNECTION WITH " + this.PROTOCOL);
         try{
             if(PROTOCOL.toUpperCase() == "TCP")
             {
+                System.out.println("TCP");
                 this.handleTCP();
             }
             else if(PROTOCOL.toUpperCase() == "UDP")
             {
+                System.out.println("UDP");    
                 this.handleUDP();
+            }
+            else
+            {
+                System.out.println("ERROR?");
             }
         }
         catch(IOException e)
@@ -60,7 +66,18 @@ public class Handler implements Runnable
         BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         while(clientSocket.isConnected())
         {
+            try
+            {
+                Thread.sleep(2000);
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            System.out.println("Waiting for Input");
+
             System.out.println("Received input:" + input.readLine());
+
         }
         ;
     }
