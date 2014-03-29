@@ -31,7 +31,11 @@ public class ServerManager
     ServerManager INSTANCE;
     Thread[] POOL;
     boolean VERBOSEOUTPUT;
+    public enum type{TCP, UDP};
     ArrayList<Connection> clients;
+    
+    String OK_REPLY = "OK";
+    String ERR_REPLY = "ERROR";
     
     /*
         void main:
@@ -90,6 +94,50 @@ public class ServerManager
         }
     }
     
+    
+    public String ME_IS(String requestLine, InetAddress requester, Handler handle)
+    {
+        //ME IS <name> request sent. Parse out the identifier. 
+        //   If there is a duplicate identifier, reply an error
+        //   If there is a duplicate requestaddr, reply an error
+        //   Otherwise make a new connection and add it to the list and return
+        //   an OK
+        
+        String targetId = requestLine.split(" ")[2];
+        
+        for(Connection c : clients)
+        {
+            if(c.userid.equals(targetId))
+            {
+                return ERR_REPLY;
+            }
+            /*
+            REMOVED FOR DEBUG PURPOSES:
+            else if(c.InetAddr.equals(handle.clientSocket.getInetAddress()))
+            {
+                return ERR_REPLY;
+            }
+            */
+        }
+        
+        Connection toAdd = new Connection(targetId, requester, handle);
+        clients.add(toAdd);
+        
+        System.out.println("ADDED NEW USER" + targetId + " " + requester.toString());
+        return OK_REPLY;
+    }
+    
+    public String WHO_HERE(String requestLine, Handler handle)
+    {
+        StringBuilder reply = new StringBuilder();
+        for(Connection c : clients)
+        {
+            reply.append( c.userid + ": <" + c.InetAddr.toString() +  ">\n" );
+        }
+        
+        System.out.println("PROCESSED WHO HERE");
+        return reply.toString();
+    }
     
     
 }

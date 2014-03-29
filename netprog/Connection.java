@@ -19,18 +19,33 @@ import java.util.*;
 
 
 public class Connection{
-    String IPAddress;
-    String userid;
-    int numMessages;
     
-    public Connection(String uid, String IP)
+    String PROTOCOL;
+    String userid;
+    InetAddress InetAddr;
+    int numMessages;
+    Handler handler;
+    
+    public Connection(String uid, InetAddress ip, Handler h)
     {
-        this.IPAddress = IP;
+        this.InetAddr = ip;
         this.userid = uid;
+        this.handler = h;
         this.numMessages = 0;
+        this.PROTOCOL = h.PROTOCOL;
     }
     
-    
+    public void writeTCP(String msg)
+    {
+        try
+        {
+            handler.clientSocket.getOutputStream().write(msg.getBytes());
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
     
     
 }
