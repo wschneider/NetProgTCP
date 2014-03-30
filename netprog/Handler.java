@@ -151,15 +151,35 @@ public class Handler implements Runnable
                 
                 requestLine = a.toString();
                 System.out.println("Message: " + requestLine);
+                
+                String reply = this.server.manager.SEND(requestLine, this);
+                
+                if (!reply.equals(null)) {
+                    clientSocket.getOutputStream().write(reply.getBytes());
+                }
+
             }
             else if(c.startsWith("BROADCAST"))
             {
                 /*
                 (4f) c is a BROADCAST request
                 */
-                /*
-                TODO: BROADCAST FUNCTIONALITY
-                */
+                StringBuilder a = new StringBuilder();
+                a.append(c + '\n');
+                while(c.length() != 0)
+                {
+                    c = input.readLine();
+                    a.append(c + '\n');
+                }
+                
+                requestLine = a.toString();
+                System.out.println("Message: " + requestLine);
+                
+                String reply = this.server.manager.BROADCAST(requestLine, this);
+                
+                if (!reply.equals(null)) {
+                    clientSocket.getOutputStream().write(reply.getBytes());
+                }
             }
             else
             {
