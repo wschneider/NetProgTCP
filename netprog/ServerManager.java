@@ -37,6 +37,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import com.sun.jndi.ldap.Connection;
+
 public class ServerManager
 {
     //Singleton representation of the server because reasons
@@ -181,18 +183,78 @@ public class ServerManager
         return reply.toString();
     }
     
-    public String SEND()
+    
+    /*
+     * String SEND():
+     *      Manager handles a SEND request from a client.
+     *      Operation:
+     *          (1) Builds a String to be sent to the target client.
+     *          (2) Searches clients for the target client and, if found, writes the string to that client.
+     *          (3) Returns the response for the sender (null if successful, an error message if not).
+     */
+    public String SEND(String requestLine, Handler handle)
     {
-        return null;
+        boolean userFound = false;
+        
+        // Note: first split will only isolate the first line, since it is limited to 2 substrings.
+        // The rest of the message will be unaffected.
+        String[2] requestLines = requestLine.split("\n", 2);
+        String[] firstLineParts = requestLines[0].split(" ");
+        String outgoingMessage = "FROM " + firstLineParts[1] + "\n" + requestLines[1];
+        
+        for(Connection c : clients) {
+            if (c.userid.equals(firstLineParts[2])) {
+                c.write(outgoingMessage);
+                userFound = true;
+                break;
+            }
+        }
+        
+        if (userFound) {
+            return null;
+        }
+        return "ERROR no such user";
     }
     
+    /*
+     * String BROADCAST():
+     *      Manager handles a BROADCAST request from a client.
+     *      Operation:
+     *          (1) Builds a String to be sent to the target client.
+     *          (2) Writes the string to all clients.
+     *          (3) Returns the response for the sender (null if successful, an error message if not).
+     */
     public String BROADCAST()
     {
+        String[2] requestLines = requestLine.split("\n", 2);
+        String[] firstLineParts = requestLines[0].split(" ");
+        String outgoingMessage = "FROM " + firstLineParts[1] + "\n" + requestLines[1];
+        
+        for(Connection c : clients) {
+            c.write(outgoingMessage);
+        }
+        
         return null;
     }
     
+    /*
+     * String LOGOUT():
+     *      Manager handles a LOGOUT request from a client.
+     *      Operation:
+     *          (1) Finds the Connection in the clients array and remove it.
+     *          Additional steps required by TCP connections should be handled by the Handler object.
+     */
     public String LOGOUT()
     {
-        return null;
+        String targetId = requestLine.split(" ")[2];
+
+        for(Connection c : clients) {
+            if (c.userid.equals(targetId)) {
+                clients.remove(c);
+                return null;
+            }
+        }
+        
+        return "ERROR no such user\n";        
     }
 }
