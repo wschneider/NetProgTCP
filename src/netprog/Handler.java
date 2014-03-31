@@ -15,12 +15,17 @@ package netprog;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.channels.IllegalBlockingModeException;
+import java.nio.channels.DatagramChannel;
+import java.nio.ByteBuffer;
 
 public class Handler implements Runnable
 {
     String PROTOCOL;
     Server server;
     Socket clientSocket;
+    DatagramSocket UDPClientSocket;
+    DatagramChannel UDPClientChannel;
     
     /*
     TODO: IMPLEMENT CONSTRUCTOR
@@ -29,15 +34,38 @@ public class Handler implements Runnable
     {
         this.server = top;
         this.clientSocket = clientSocket;
+        this.UDPClientSocket = null;
         this.PROTOCOL = protocol;
     }
+
+    public Handler(Server top, /*DatagramSocket UDPSocket,*/ DatagramChannel UDPChannel , String protocol)
+    {
+        this.server = top;
+        this.clientSocket = null;
+        //this.UDPClientSocket = UDPSocket;
+        this.UDPClientChannel = UDPChannel;
+        this.PROTOCOL = protocol;
+
+    }
     
+    public InetAddress getIP()
+    {
+        if(PROTOCOL.equals("TCP"))
+        {
+            return this.clientSocket.getInetAddress();
+        }
+        else
+        {
+            return this.UDPClientChannel.socket().getInetAddress();
+        }
+    }
+
     /*
     TODO: IMPLEMENT VOID RUN
     */
     public void run()
     {
-        System.out.println("RECEIVED CONNECTION WITH " + this.PROTOCOL);
+        //System.out.println("RECEIVED CONNECTION WITH " + this.PROTOCOL);
         try{
             if(PROTOCOL.toUpperCase() == "TCP")
             {
@@ -57,6 +85,10 @@ public class Handler implements Runnable
         catch(IOException e)
         {
             System.err.println(e);
+        }
+        catch(IllegalBlockingModeException e)
+        {
+            //
         }
     }
     
@@ -192,51 +224,84 @@ public class Handler implements Runnable
         }
     }
     
-    
-    /*
-    DEPRECATED: use handleTCP
-                left here for reference. 
-    */
-    public void OLDhandleTCP0() throws IOException
+    public void handleUDP() throws IOException
     {
-        // Should theoretically loop indefinitely. 
-        BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        //while(clientSocket.)
-        while(clientSocket.isConnected())
+        ByteBuffer input = ByteBuffer.allocate(512);
+        //ByteBuffer output = ByteBuffer.allocate(512);
+
+        UDPClientChannel.receive(input);
+
+        //System.out.println("Received a packed via UDP");
+
+        String requestLine = new String(input.array());
+
+        if(requestLine.length() == 0)
         {
-            try
-            {
-                Thread.sleep(2000);
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
-            System.out.println("Waiting for Input");
+            return;
+        }
 
-            System.out.println("input is ready?: " + input.ready());
-            
-            String c = input.readLine();
-            System.out.println("C is '" + c + "'");
-            //while(input.)
-            {
-                System.out.println(c);
-                c = input.readLine();
-            }
-            //System.out.println("Received input:" + input.readLine());
+        String[] lines = requestLine.split("\n");
+        String reply = "nuttin";        
 
+        if(lines[0] == null)
+        {
+            return;
+        }
+        else if(lines[0].startsWith("ME IS "))
+        {
+            reply = this.server.manager.ME_IS(requestLine, this); 
+        }
+        else if(lines[0].startsWith("WHO HERE "))
+        {
+            reply = this.server.manager.WHO_HERE(requestLine, this);
+        }
+        else if(lines[0].startsWith("LOGOUT "))
+        {
 
         }
-        ;
+        else if(lines[0].startsWith("SEND "))
+        {
+
+        }
+        else if(lines[0].startsWith("BROADCAST "))
+        {
+
+        }
+        else
+        {
+            return;
+        }
+    
+        ByteBuffer output = ByteBuffer.wrap(reply.getBytes());
+        //UDPClientChannel.write(output);        
+
+        //System.out.println("REQUEST: " + requestLine);
     }
-    
-    
+
+
     /*
     TODO: Implement UDP handler function. 
     */
-    public void handleUDP()
+    public void handleUDP0() throws IOException, IllegalBlockingModeException
     {
-        ;
+        byte[] dataIn = new byte[1024]; 
+        byte[] dataOut = new byte[1024]; 
+        //while(UDPClientSocket.isConnected()) 
+        //{ 
+            DatagramPacket requestPacket = new DatagramPacket(dataIn, dataIn.length); 
+            //System.out.println("Blocking on receive"); 
+
+            UDPClientSocket.receive(requestPacket); 
+            System.out.println("Received a packet"); 
+            String fullRequest = new String( requestPacket.getData() ); 
+            /* UDP handles messages with content fields up to 100 bytes. They 
+                are formatted in lines though, so lets just use that. */ 
+            String[] lines = fullRequest.split("\n"); 
+            System.out.println("RECEIVED FROM USER: \n" + fullRequest); 
+            String reply = "ACK"; 
+            DatagramPacket replyPacket = new DatagramPacket(reply.getBytes(), reply.getBytes().length, requestPacket.getAddress(), requestPacket.getPort()); 
+            UDPClientSocket.send(replyPacket); 
+        //}
     }
     
     

@@ -37,15 +37,13 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import com.sun.jndi.ldap.Connection;
-
 public class ServerManager
 {
     //Singleton representation of the server because reasons
     ServerManager INSTANCE;
     Thread[] POOL;
     boolean VERBOSEOUTPUT;
-    ArrayList<Connection> clients;
+    ArrayList<UserConnection> clients;
     
     String OK_REPLY = "OK";
     String ERR_REPLY = "ERROR";
@@ -85,7 +83,7 @@ public class ServerManager
     */
     public ServerManager(int ports[])
     {
-        clients = new ArrayList<Connection>();
+        clients = new ArrayList<UserConnection>();
         VERBOSEOUTPUT = true;
         POOL = new Thread[ports.length];
         for(int i=0;i<ports.length;i++)
@@ -130,7 +128,7 @@ public class ServerManager
         /*
         (2): Loop over clients
         */
-        for(Connection c : clients)
+        for(UserConnection c : clients)
         {
             /*
             (2a): Check user id match; if fail, return error
@@ -152,7 +150,9 @@ public class ServerManager
         /*
         (3): Add client connection to list of users
         */
-        Connection toAdd = new Connection(targetId, handle);
+
+        System.out.println("ADDING USER: " + targetId + " AT IP " + handle.getIP());
+        UserConnection toAdd = new UserConnection(targetId, handle);
         clients.add(toAdd);
         
         /*
@@ -175,7 +175,7 @@ public class ServerManager
     {
         StringBuilder reply = new StringBuilder();
         
-        for(Connection c : clients)
+        for(UserConnection c : clients)
         {
             reply.append( c.userid + ": <" + c.InetAddr.toString() +  ">\n" );
         }
@@ -198,11 +198,11 @@ public class ServerManager
         
         // Note: first split will only isolate the first line, since it is limited to 2 substrings.
         // The rest of the message will be unaffected.
-        String[2] requestLines = requestLine.split("\n", 2);
+        String[] requestLines = requestLine.split("\n", 2);
         String[] firstLineParts = requestLines[0].split(" ");
         String outgoingMessage = "FROM " + firstLineParts[1] + "\n" + requestLines[1];
         
-        for(Connection c : clients) {
+        for(UserConnection c : clients) {
             if (c.userid.equals(firstLineParts[2])) {
                 c.write(outgoingMessage);
                 userFound = true;
@@ -224,13 +224,13 @@ public class ServerManager
      *          (2) Writes the string to all clients.
      *          (3) Returns the response for the sender (null if successful, an error message if not).
      */
-    public String BROADCAST()
+    public String BROADCAST(String requestLine, Handler handle)
     {
-        String[2] requestLines = requestLine.split("\n", 2);
+        String[] requestLines = requestLine.split("\n", 2);
         String[] firstLineParts = requestLines[0].split(" ");
         String outgoingMessage = "FROM " + firstLineParts[1] + "\n" + requestLines[1];
         
-        for(Connection c : clients) {
+        for(UserConnection c : clients) {
             c.write(outgoingMessage);
         }
         
@@ -244,11 +244,11 @@ public class ServerManager
      *          (1) Finds the Connection in the clients array and remove it.
      *          Additional steps required by TCP connections should be handled by the Handler object.
      */
-    public String LOGOUT()
+    public String LOGOUT(String requestLine, Handler handle)
     {
         String targetId = requestLine.split(" ")[2];
 
-        for(Connection c : clients) {
+        for(UserConnection c : clients) {
             if (c.userid.equals(targetId)) {
                 clients.remove(c);
                 return null;
