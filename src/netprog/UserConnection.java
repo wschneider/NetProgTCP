@@ -25,6 +25,7 @@ public class UserConnection{
     InetAddress InetAddr;
     int numMessages;
     Handler handler;
+    int port;
     
     public UserConnection(String uid, Handler h)
     {
@@ -33,6 +34,7 @@ public class UserConnection{
         this.handler = h;
         this.numMessages = 0;
         this.PROTOCOL = h.PROTOCOL;
+        this.port = h.getPort();
     }
     
     public void write(String msg)
@@ -43,7 +45,7 @@ public class UserConnection{
         }
         else if(this.PROTOCOL.equals("UDP"))
         {
-
+            this.writeUDP(msg);
         }
         else
         {
@@ -52,7 +54,25 @@ public class UserConnection{
 
     }
 
-    public void writeTCP(String msg)
+    private void writeUDP(String msg)
+    {
+        //The handler for the UDP connection cannot be assumed to be valid after one
+        //  message has been sent, so we'll just create a new connection. 
+        try
+        {        
+            DatagramSocket outSock = new DatagramSocket();
+
+            outSock.connect(this.InetAddr, this.port);  
+            outSock.send( new DatagramPacket (msg.getBytes(), msg.length()) );
+        }
+        catch( IOException e)
+        {
+            System.err.println("Failed to write message due to IOException");
+        }    
+    }
+
+
+    private void writeTCP(String msg)
     {
         try
         {

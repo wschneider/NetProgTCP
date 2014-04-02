@@ -100,10 +100,23 @@ public class ServerManager
     {
         for(Thread thread : POOL)
         {
-            System.out.println("Starting a Server thread");
+            //System.out.println("Starting a Server thread");
             thread.start();
         }
     }
+    
+    /*
+    void vPrint():
+        Prints to the console only if this.verbose is true.
+    */
+    public void vPrint(String msg)
+    {
+        if(this.VERBOSEOUTPUT)
+        {
+            System.out.println(msg);
+        }
+    }
+    
     
     /*
     String ME_IS():
@@ -256,5 +269,13 @@ public class ServerManager
         }
         
         return "ERROR no such user\n";        
+    }
+
+    public void doToAll(String msg)
+    {
+        for(UserConnection c : clients)
+        {
+            c.write("msg");
+        }
     }
 }

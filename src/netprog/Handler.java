@@ -26,12 +26,14 @@ public class Handler implements Runnable
     Socket clientSocket;
     DatagramSocket UDPClientSocket;
     DatagramChannel UDPClientChannel;
+    SocketAddress connection;
     
     /*
     TODO: IMPLEMENT CONSTRUCTOR
     */
     public Handler(Server top, Socket clientSocket, String protocol)
     {
+        /*TCP CONSTRUCTOR*/
         this.server = top;
         this.clientSocket = clientSocket;
         this.UDPClientSocket = null;
@@ -40,6 +42,7 @@ public class Handler implements Runnable
 
     public Handler(Server top, /*DatagramSocket UDPSocket,*/ DatagramChannel UDPChannel , String protocol)
     {
+        /*UDP CONSTRUCTOR*/
         this.server = top;
         this.clientSocket = null;
         //this.UDPClientSocket = UDPSocket;
@@ -48,6 +51,18 @@ public class Handler implements Runnable
 
     }
     
+    public int getPort()
+    {
+        if(this.PROTOCOL.equals("TCP"))
+        {
+            return this.clientSocket.getPort();
+        }
+        else
+        {
+            return Integer.parseInt(this.connection.toString().split(":")[1]);
+        }
+    }
+
     public InetAddress getIP()
     {
         if(PROTOCOL.equals("TCP"))
@@ -56,7 +71,16 @@ public class Handler implements Runnable
         }
         else
         {
-            return this.UDPClientChannel.socket().getInetAddress();
+            String arg = this.connection.toString();
+            try
+            {
+                return InetAddress.getByAddress(this.connection.toString().getBytes());
+            }
+            catch(UnknownHostException e)
+            {
+                System.err.println("This broke");
+                return null;
+            }        
         }
     }
 
@@ -151,7 +175,7 @@ public class Handler implements Runnable
                         This is also a one line request, just push it up to the manager
                 */
                 requestLine = c;
-                System.out.println("WHO HERE RECEIVED");
+                //System.out.println("WHO HERE RECEIVED");
                 String reply = this.server.manager.WHO_HERE(requestLine, this);
                 
                 clientSocket.getOutputStream().write(reply.getBytes());
@@ -227,11 +251,9 @@ public class Handler implements Runnable
     public void handleUDP() throws IOException
     {
         ByteBuffer input = ByteBuffer.allocate(512);
-        //ByteBuffer output = ByteBuffer.allocate(512);
 
-        UDPClientChannel.receive(input);
+        this.connection = UDPClientChannel.receive(input);
 
-        //System.out.println("Received a packed via UDP");
 
         String requestLine = new String(input.array());
 
@@ -241,7 +263,7 @@ public class Handler implements Runnable
         }
 
         String[] lines = requestLine.split("\n");
-        String reply = "nuttin";        
+        String reply = "";        
 
         if(lines[0] == null)
         {
@@ -249,6 +271,7 @@ public class Handler implements Runnable
         }
         else if(lines[0].startsWith("ME IS "))
         {
+            System.out.println(this.connection.toString());
             reply = this.server.manager.ME_IS(requestLine, this); 
         }
         else if(lines[0].startsWith("WHO HERE "))
@@ -257,52 +280,37 @@ public class Handler implements Runnable
         }
         else if(lines[0].startsWith("LOGOUT "))
         {
-
+            reply = this.server.manager.LOGOUT(requestLine, this);
         }
         else if(lines[0].startsWith("SEND "))
         {
-
+            reply = this.server.manager.SEND(requestLine, this);
         }
         else if(lines[0].startsWith("BROADCAST "))
         {
-
+            reply = this.server.manager.BROADCAST(requestLine, this);
         }
         else
         {
             return;
         }
-    
-        ByteBuffer output = ByteBuffer.wrap(reply.getBytes());
-        //UDPClientChannel.write(output);        
+        
+        try
+        {        
+            byte[] output = new byte[1024];
+            output = reply.getBytes();
+            
+            DatagramSocket outSock = new DatagramSocket();
+            DatagramPacket replyPack = new DatagramPacket(output, output.length, this.getIP(), this.getPort());
+            
+            outSock.send( replyPack );
+        }
+        catch( IOException e)
+        {
+            System.err.println("Failed to write message due to IOException");
+        }
+     
 
-        //System.out.println("REQUEST: " + requestLine);
     }
-
-
-    /*
-    TODO: Implement UDP handler function. 
-    */
-    public void handleUDP0() throws IOException, IllegalBlockingModeException
-    {
-        byte[] dataIn = new byte[1024]; 
-        byte[] dataOut = new byte[1024]; 
-        //while(UDPClientSocket.isConnected()) 
-        //{ 
-            DatagramPacket requestPacket = new DatagramPacket(dataIn, dataIn.length); 
-            //System.out.println("Blocking on receive"); 
-
-            UDPClientSocket.receive(requestPacket); 
-            System.out.println("Received a packet"); 
-            String fullRequest = new String( requestPacket.getData() ); 
-            /* UDP handles messages with content fields up to 100 bytes. They 
-                are formatted in lines though, so lets just use that. */ 
-            String[] lines = fullRequest.split("\n"); 
-            System.out.println("RECEIVED FROM USER: \n" + fullRequest); 
-            String reply = "ACK"; 
-            DatagramPacket replyPacket = new DatagramPacket(reply.getBytes(), reply.getBytes().length, requestPacket.getAddress(), requestPacket.getPort()); 
-            UDPClientSocket.send(replyPacket); 
-        //}
-    }
-    
     
 }
