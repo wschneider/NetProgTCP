@@ -166,6 +166,8 @@ public class Handler implements Runnable
                 */
                 requestLine = c;
                 String reply = this.server.manager.ME_IS(requestLine, this);
+                
+                this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + requestLine);
                 clientSocket.getOutputStream().write(reply.getBytes());
             }
             else if(c.startsWith("WHO HERE "))
@@ -175,8 +177,9 @@ public class Handler implements Runnable
                         This is also a one line request, just push it up to the manager
                 */
                 requestLine = c;
-                //System.out.println("WHO HERE RECEIVED");
                 String reply = this.server.manager.WHO_HERE(requestLine, this);
+                
+                this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + requestLine);
                 
                 clientSocket.getOutputStream().write(reply.getBytes());
             }
@@ -206,9 +209,10 @@ public class Handler implements Runnable
                 }
                 
                 requestLine = a.toString();
-                System.out.println("Message: " + requestLine);
                 
                 String reply = this.server.manager.SEND(requestLine, this);
+                
+                this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + requestLine);
                 
                 if (!reply.equals(null)) {
                     clientSocket.getOutputStream().write(reply.getBytes());
@@ -232,6 +236,8 @@ public class Handler implements Runnable
                 System.out.println("Message: " + requestLine);
                 
                 String reply = this.server.manager.BROADCAST(requestLine, this);
+                this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + requestLine);
+                
                 
                 if (!reply.equals(null)) {
                     clientSocket.getOutputStream().write(reply.getBytes());
@@ -294,6 +300,8 @@ public class Handler implements Runnable
         {
             return;
         }
+        
+        this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + requestLine);
         
         try
         {        

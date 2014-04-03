@@ -54,10 +54,22 @@ public class UserConnection{
 
     }
 
+    public int increment()
+    {
+        this.numMessages += 1;
+        return this.numMessages;
+    }
+
     private void writeUDP(String msg)
     {
         //The handler for the UDP connection cannot be assumed to be valid after one
         //  message has been sent, so we'll just create a new connection. 
+        if(msg.length() > 105)
+        {
+            System.err.println("Cannot write this message, It is too long");
+            return;
+        }
+        
         try
         {        
             DatagramSocket outSock = new DatagramSocket();

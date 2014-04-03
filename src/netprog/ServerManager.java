@@ -26,8 +26,8 @@
         public String LOGOUT():
 
     Protocol:
-        <SEND msg id>: Send msg to the client represented by id
-        <BROADCAST msg>: Send msg to EACH client 
+        <SEND from to\nmsg>: Send msg to the client represented by id
+        <BROADCAST from\nmsg>: Send msg to EACH client 
         <ME IS id>: Declare identity
 */
 
@@ -48,6 +48,18 @@ public class ServerManager
     String OK_REPLY = "OK";
     String ERR_REPLY = "ERROR";
     
+    String[] FunResponses = {"~~~Simon the Server Says: \"All Glory To The Hypnotoad!\"",
+        "~~~Simon the Server Says: \"Lord Helix will forgive your sins\"",
+        "~~~Simon the Server Says: \"OH NO, YOU DIDNT RELEASE THE MEEPITS DID YOU?\"",
+        "~~~Simon the Server Says: \"KNOCK KNOCK\"",
+        "~~~Simon the Server Says: \"If peeing in your pants is cool, consider me Miles Davis\"",
+        "~~~Simon the Server Says: \"Gentlemen, you can't fight in here! This is the War Room!\"",
+        "~~~Simon the Server Says: \"I'd love to stay here and talk with you... but I'm not going to\"",
+        "~~~Simon the Server Says: \"Everybody knows you never go full retard!\"",
+        "~~~Simon the Server Says: \"Bratwurst? Aren't we the optimist...\"",
+        "~~~Simon the Server Says: \"Hello. My name is Inigo Montoya. You killed my father. Prepare to die\""};
+        
+    
     /*
         void main:
             (1) Converts arguments to strings
@@ -60,17 +72,45 @@ public class ServerManager
             Args are the ports the server is going to listen on... 
             Those really should be ints, shouldn't they...
         */
-        int[] ports = new int[args.length];
         
-        for(int i = 0;i < args.length;i++)
+        if(args.length == 0)
         {
-            ports[i] = Integer.parseInt(args[i]);
+            System.out.println("Port numbers required");
+            return;
+        }
+        
+        int[] ports;
+        int j;
+        boolean verbose;
+        
+        if(args[0].equals("-v"))
+        {
+            ports = new int[args.length-1];
+            j = 1;
+            verbose = true;
+        }
+        else
+        {
+            ports = new int[args.length];
+            j = 0;
+            verbose = false;
+        }
+        
+        for(int i = j ;i < args.length;i++)
+        {
+            ports[i-j] = Integer.parseInt(args[i]);
         }
         
         /*
         TODO: CONTINUE MAIN FUNCTION.
         */
         ServerManager a = new ServerManager(ports);
+        
+        if(verbose)
+        {
+            a.setVerbose();
+        }
+        
         a.start();
         
     }
@@ -84,12 +124,16 @@ public class ServerManager
     public ServerManager(int ports[])
     {
         clients = new ArrayList<UserConnection>();
-        VERBOSEOUTPUT = true;
         POOL = new Thread[ports.length];
         for(int i=0;i<ports.length;i++)
         {
             POOL[i] = new Thread(new Server(ports[i], this));
         }   
+    }
+    
+    public void setVerbose()
+    {
+        this.VERBOSEOUTPUT = true;
     }
     
     /*
@@ -164,7 +208,7 @@ public class ServerManager
         (3): Add client connection to list of users
         */
 
-        System.out.println("ADDING USER: " + targetId + " AT IP " + handle.getIP());
+        //System.out.println("ADDING USER: " + targetId + " AT IP " + handle.getIP());
         UserConnection toAdd = new UserConnection(targetId, handle);
         clients.add(toAdd);
         
@@ -208,17 +252,25 @@ public class ServerManager
     public String SEND(String requestLine, Handler handle)
     {
         boolean userFound = false;
+        String fromUser;
+        String toUser;
         
         // Note: first split will only isolate the first line, since it is limited to 2 substrings.
         // The rest of the message will be unaffected.
         String[] requestLines = requestLine.split("\n", 2);
         String[] firstLineParts = requestLines[0].split(" ");
-        String outgoingMessage = "FROM " + firstLineParts[1] + "\n" + requestLines[1];
+        
+        fromUser = firstLineParts[1];
+        toUser   = firstLineParts[2];
+        
+        String outgoingMessage = "FROM " + fromUser + "\n" + requestLines[1];
         
         for(UserConnection c : clients) {
-            if (c.userid.equals(firstLineParts[2])) {
+            if (c.userid.equals(toUser)) {
                 c.write(outgoingMessage);
                 userFound = true;
+                handleMessage(fromUser);
+                
                 break;
             }
         }
@@ -239,13 +291,18 @@ public class ServerManager
      */
     public String BROADCAST(String requestLine, Handler handle)
     {
+        String fromUser;
         String[] requestLines = requestLine.split("\n", 2);
         String[] firstLineParts = requestLines[0].split(" ");
-        String outgoingMessage = "FROM " + firstLineParts[1] + "\n" + requestLines[1];
+        fromUser = firstLineParts[1];
+        
+        String outgoingMessage = "FROM " + fromUser + "\n" + requestLines[1];
         
         for(UserConnection c : clients) {
             c.write(outgoingMessage);
         }
+        
+        handleMessage(fromUser);
         
         return null;
     }
@@ -269,6 +326,56 @@ public class ServerManager
         }
         
         return "ERROR no such user\n";        
+    }
+
+    private String chunkMessage(String msg)
+    {
+        //CONVERTS A MESSAGE INTO A CHUNKED MESSAGE AS PER PROTOCOL. 
+        StringBuilder reply = new StringBuilder();
+        
+        if(msg.length() < 100)
+        {
+            reply.append(msg.length());
+            reply.append("\n");
+            reply.append(msg);
+            return reply.toString();
+        }
+        
+        int p = 0;
+        while(p <= msg.length())
+        {
+            int q = Math.min(99,msg.length()-p);
+            String toAdd = msg.substring(p, p+q);
+            p = q+1;
+            
+            reply.append("c" + toAdd.length() + "\n");
+            reply.append(toAdd);
+            reply.append("\n");
+        }
+        
+        return reply.toString();    
+    }
+    
+    private void handleMessage(String targetId)
+    {
+        //user has sent a message. Increment his nummessages, and handle random reply
+        for(UserConnection c : clients)
+        {
+            if(c.userid.equals(targetId))
+            {
+                int a = c.increment();
+                if(a%3==0)
+                {
+                    c.write(randomMessage());
+                }
+            }
+        }
+    }
+    
+    private String randomMessage()
+    {
+        int random = (int)(Math.random() * 10);
+        return this.FunResponses[random];
     }
 
     public void doToAll(String msg)
