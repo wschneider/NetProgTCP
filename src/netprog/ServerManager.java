@@ -85,6 +85,11 @@ public class ServerManager
         
         if(args[0].equals("-v"))
         {
+            if(args.length == 1)
+            {
+                System.out.println("Port numbers required");
+                return;
+            }
             ports = new int[args.length-1];
             j = 1;
             verbose = true;
@@ -123,6 +128,7 @@ public class ServerManager
     */
     public ServerManager(int ports[])
     {
+        this.VERBOSEOUTPUT = false;
         clients = new ArrayList<UserConnection>();
         POOL = new Thread[ports.length];
         for(int i=0;i<ports.length;i++)
@@ -131,6 +137,11 @@ public class ServerManager
         }   
     }
     
+    /*
+    void setVerbose:
+        sets the verbose output boolean to true, allowing output to be displayed 
+        from the server
+    */
     public void setVerbose()
     {
         this.VERBOSEOUTPUT = true;
@@ -144,7 +155,6 @@ public class ServerManager
     {
         for(Thread thread : POOL)
         {
-            //System.out.println("Starting a Server thread");
             thread.start();
         }
     }
@@ -208,7 +218,6 @@ public class ServerManager
         (3): Add client connection to list of users
         */
 
-        //System.out.println("ADDING USER: " + targetId + " AT IP " + handle.getIP());
         UserConnection toAdd = new UserConnection(targetId, handle);
         clients.add(toAdd);
         
@@ -328,9 +337,14 @@ public class ServerManager
         return "ERROR no such user\n";        
     }
 
+    /*
+        String chunkMessage():
+            takes a string representing a message that is to be sent out to 
+            users. If it is under 100 characters it is sent as is, prefixed with
+            the number of bytes. If it is more, it is converted to chunked style
+    */
     private String chunkMessage(String msg)
     {
-        //CONVERTS A MESSAGE INTO A CHUNKED MESSAGE AS PER PROTOCOL. 
         StringBuilder reply = new StringBuilder();
         
         if(msg.length() < 100)
@@ -356,9 +370,14 @@ public class ServerManager
         return reply.toString();    
     }
     
+    /*
+        void handleMessage():
+            When a user sends 3 messages, they are supposed to be pinged with a
+            random reply. This method is called every time a user sends a 
+            message, and when they have %3=0 messages, they are pinged. 
+    */
     private void handleMessage(String targetId)
     {
-        //user has sent a message. Increment his nummessages, and handle random reply
         for(UserConnection c : clients)
         {
             if(c.userid.equals(targetId))
@@ -372,12 +391,21 @@ public class ServerManager
         }
     }
     
+    /*
+        String randomMessage():
+            Retrieves a random message for the handleMessage method.
+    */
     private String randomMessage()
     {
         int random = (int)(Math.random() * 10);
         return this.FunResponses[random];
     }
 
+    /*
+        void doToAll():
+            sends an unformatted message to each client. FOR TESTING PURPOSES 
+            ONLY
+    */
     public void doToAll(String msg)
     {
         for(UserConnection c : clients)

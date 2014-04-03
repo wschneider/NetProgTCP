@@ -31,7 +31,7 @@ public class Server implements Runnable{
     ServerSocketChannel tcp;
     DatagramChannel udp;
     Selector selector;
-    //Socket clientSocket;
+    
     /*
     CONSTRUCTOR:
         Initializes the server-side socket connection. Literally nothing else.
@@ -44,9 +44,7 @@ public class Server implements Runnable{
         {
             SocketAddress localport = new InetSocketAddress(port);
             
-            //CREATE THE PORTS
-            //this.TCPSocket = new ServerSocket(port);
-            //this.UDPSocket = new DatagramSocket(port);
+            //Create the channels and bind them:
             this.tcp = ServerSocketChannel.open();
             this.udp = DatagramChannel.open();
             
@@ -93,12 +91,10 @@ public class Server implements Runnable{
                     
                     if(key.isAcceptable() && c == tcp)
                     {
-                        System.out.println("Acceptable TCP, passing thread");
                         new Thread(new Handler(this, tcp.accept().socket(), "TCP")).start();
                     }
                     else if(key.isReadable() && c == udp)
                     {
-                        //System.out.println("Acceptable UDP message, passing thread");
                         new Thread(new Handler(this, udp, "UDP")).start();
                     }
                 }
@@ -108,12 +104,6 @@ public class Server implements Runnable{
                 e.printStackTrace();
             }
         }
-        
-        
-        
     }
-    
-    
-    
     
 }

@@ -45,7 +45,6 @@ public class Handler implements Runnable
         /*UDP CONSTRUCTOR*/
         this.server = top;
         this.clientSocket = null;
-        //this.UDPClientSocket = UDPSocket;
         this.UDPClientChannel = UDPChannel;
         this.PROTOCOL = protocol;
 
@@ -89,16 +88,13 @@ public class Handler implements Runnable
     */
     public void run()
     {
-        //System.out.println("RECEIVED CONNECTION WITH " + this.PROTOCOL);
         try{
             if(PROTOCOL.toUpperCase() == "TCP")
             {
-                //System.out.println("TCP");
                 this.handleTCP();
             }
             else if(PROTOCOL.toUpperCase() == "UDP")
-            {
-                //System.out.println("UDP");    
+            { 
                 this.handleUDP();
             }
             else
@@ -112,7 +108,7 @@ public class Handler implements Runnable
         }
         catch(IllegalBlockingModeException e)
         {
-            //
+            //error?
         }
     }
     
@@ -254,23 +250,41 @@ public class Handler implements Runnable
         }
     }
     
+    /*
+    void handleUDP:
+        Handles the server-side functionality for a client connecting via UDP.
+        
+        The Function operates as such:
+            (1) Retrieve the bytes from the DatagramChannel, and convert to 
+                String
+            (2) Handles each command case conditionally, retreiving a reply
+                from the ServerManager
+            (3) Submits a reply to the user.  
+               
+    */
     public void handleUDP() throws IOException
     {
+        /*
+            (1): Retrieve input from Channel
+        */
         ByteBuffer input = ByteBuffer.allocate(512);
-
         this.connection = UDPClientChannel.receive(input);
-
-
         String requestLine = new String(input.array());
 
         if(requestLine.length() == 0)
         {
+            //Clients used for testing had a tendency to submit null strings, so
+            //  this is to handle those. 
             return;
         }
 
         String[] lines = requestLine.split("\n");
         String reply = "";        
 
+        /*
+            (2): Handle each command. Since UDP comes in all at once via the 
+                 ByteBuffer, there is no need to do additional streaming. 
+        */
         if(lines[0] == null)
         {
             return;
@@ -301,15 +315,22 @@ public class Handler implements Runnable
             return;
         }
         
-        this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + requestLine);
+        //Optional output
+        this.server.manager.vPrint("RCVD from " + this.getIP() + ": " + 
+            requestLine);
         
         try
         {        
+            /*
+                (3): Write a reply. This is tricky on account of UDP. We're just
+                     going to pop open a new socket for writing. 
+            */
             byte[] output = new byte[1024];
             output = reply.getBytes();
             
             DatagramSocket outSock = new DatagramSocket();
-            DatagramPacket replyPack = new DatagramPacket(output, output.length, this.getIP(), this.getPort());
+            DatagramPacket replyPack = new DatagramPacket(output, output.length, 
+                this.getIP(), this.getPort());
             
             outSock.send( replyPack );
         }
@@ -317,8 +338,6 @@ public class Handler implements Runnable
         {
             System.err.println("Failed to write message due to IOException");
         }
-     
-
     }
     
 }

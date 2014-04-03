@@ -24,9 +24,17 @@ public class UserConnection{
     String userid;
     InetAddress InetAddr;
     int numMessages;
-    Handler handler;
+    Handler handler; //DOES NOT PERSIST FOR UDP CONNECTIONS
     int port;
     
+    /*
+        CONSTRUCTOR:
+            initializes the class-local variables. 
+            It is important to note that while these variables are the same for
+            TCP and UDP, they are used in entirely different ways. 
+            The Handler WILL NOT persist for UDP connections, and instead a 
+            DatagramSocket must be used for message transmission
+    */
     public UserConnection(String uid, Handler h)
     {
         this.InetAddr = h.getIP();
@@ -37,6 +45,11 @@ public class UserConnection{
         this.port = h.getPort();
     }
     
+    /*
+        void write():
+            Driver function for general-purpose writing. Calls the appropriate
+            write function depending on protocol. 
+    */
     public void write(String msg)
     {
         if(this.PROTOCOL.equals("TCP"))
@@ -49,21 +62,32 @@ public class UserConnection{
         }
         else
         {
-
+            //error?
         }
-
     }
 
+    /*
+        int increment():
+            increments the number of messages associated with this user, and
+            returns the total number of messages they have sent. 
+    */
     public int increment()
     {
         this.numMessages += 1;
         return this.numMessages;
     }
 
+    /*
+        void writeUDP():
+            Writes a message to a UDP connected user
+            
+            Operation:
+                (1) Confirms appropriate message length
+                (2) Opens a DatagramSocket
+                (3) Writes to the Socket
+    */
     private void writeUDP(String msg)
     {
-        //The handler for the UDP connection cannot be assumed to be valid after one
-        //  message has been sent, so we'll just create a new connection. 
         if(msg.length() > 105)
         {
             System.err.println("Cannot write this message, It is too long");
@@ -83,7 +107,12 @@ public class UserConnection{
         }    
     }
 
-
+    /*
+        void writeTCP():
+            Writes a message to a TCP connected user. 
+            Handlers persist on TCP, so this is as easy as grabbing the 
+            handler's socket
+    */
     private void writeTCP(String msg)
     {
         try
