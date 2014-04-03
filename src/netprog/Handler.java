@@ -40,7 +40,7 @@ public class Handler implements Runnable
         this.PROTOCOL = protocol;
     }
 
-    public Handler(Server top, /*DatagramSocket UDPSocket,*/ DatagramChannel UDPChannel , String protocol)
+    public Handler(Server top, DatagramChannel UDPChannel , String protocol)
     {
         /*UDP CONSTRUCTOR*/
         this.server = top;
@@ -73,7 +73,8 @@ public class Handler implements Runnable
             String arg = this.connection.toString();
             try
             {
-                return InetAddress.getByAddress(this.connection.toString().getBytes());
+                return InetAddress.getByAddress(
+                    this.connection.toString().getBytes());
             }
             catch(UnknownHostException e)
             {
@@ -120,8 +121,8 @@ public class Handler implements Runnable
             (1) Open the input stream from the clientSocket
             (2) Loop indefinitely (Until the client terminates):
                 (3) Read an input line from the client
-                (4) Depending on the content of the first line, keep reading to fit
-                        protocol
+                (4) Depending on the content of the first line, keep reading to 
+                        fit the protocol
                 (5) Send request to server, wait for reply
                 (6) Write reply to client. 
     */
@@ -130,7 +131,8 @@ public class Handler implements Runnable
         /*
         (1): Open input stream from Client
         */
-        BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        BufferedReader input = new BufferedReader(new InputStreamReader(
+            clientSocket.getInputStream()));
         
      
         /*
@@ -158,7 +160,8 @@ public class Handler implements Runnable
             {
                 /*
                 (4b): c is a ME IS request
-                        Since this is a one line request, just push the one line up to the manager. 
+                        Since this is a one line request, just push the one line 
+                        up to the manager. 
                 */
                 requestLine = c;
                 String reply = this.server.manager.ME_IS(requestLine, this);
@@ -170,7 +173,8 @@ public class Handler implements Runnable
             {
                 /*
                 (4c): c is a WHO HERE request
-                        This is also a one line request, just push it up to the manager
+                        This is also a one line request, just push it up to the 
+                        manager
                 */
                 requestLine = c;
                 String reply = this.server.manager.WHO_HERE(requestLine, this);
@@ -192,9 +196,9 @@ public class Handler implements Runnable
             {
                 /*
                 (4e) c is a SEND request
-                        This is a multiline request, the end of which is indicated by an 
-                        empty line. Use a string builder to construct the request, 
-                        then push it up to the manager. 
+                        This is a multiline request, the end of which is 
+                        indicated by an empty line. Use a string builder to 
+                        construct the request, then push it up to the manager. 
                 */
                 StringBuilder a = new StringBuilder();
                 a.append(c + '\n');

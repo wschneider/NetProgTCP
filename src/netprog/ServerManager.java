@@ -255,8 +255,10 @@ public class ServerManager
      *      Manager handles a SEND request from a client.
      *      Operation:
      *          (1) Builds a String to be sent to the target client.
-     *          (2) Searches clients for the target client and, if found, writes the string to that client.
-     *          (3) Returns the response for the sender (null if successful, an error message if not).
+     *          (2) Searches clients for the target client and, if found, writes 
+     *              the string to that client.
+     *          (3) Returns the response for the sender (null if successful, an 
+     *              error message if not).
      */
     public String SEND(String requestLine, Handler handle)
     {
@@ -264,8 +266,9 @@ public class ServerManager
         String fromUser;
         String toUser;
         
-        // Note: first split will only isolate the first line, since it is limited to 2 substrings.
-        // The rest of the message will be unaffected.
+        // Note: first split will only isolate the first line, since it is 
+        //           limited to 2 substrings.
+        //       The rest of the message will be unaffected.
         String[] requestLines = requestLine.split("\n", 2);
         String[] firstLineParts = requestLines[0].split(" ");
         
@@ -296,7 +299,8 @@ public class ServerManager
      *      Operation:
      *          (1) Builds a String to be sent to the target client.
      *          (2) Writes the string to all clients.
-     *          (3) Returns the response for the sender (null if successful, an error message if not).
+     *          (3) Returns the response for the sender (null if successful, an 
+     *              error message if not).
      */
     public String BROADCAST(String requestLine, Handler handle)
     {
@@ -321,7 +325,8 @@ public class ServerManager
      *      Manager handles a LOGOUT request from a client.
      *      Operation:
      *          (1) Finds the Connection in the clients array and remove it.
-     *          Additional steps required by TCP connections should be handled by the Handler object.
+     *          Additional steps required by TCP connections should be handled 
+     *          by the Handler object.
      */
     public String LOGOUT(String requestLine, Handler handle)
     {

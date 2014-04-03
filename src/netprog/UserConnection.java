@@ -5,7 +5,8 @@
         Will Kelly
 
     Purpose:
-        Represents one client connection to the server. Seriously, simple class...
+        Represents one client connection to the server. Seriously, simple class
+            ...
         
     Methods:
         To Be Described Later
